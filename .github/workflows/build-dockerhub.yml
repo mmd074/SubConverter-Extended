@@ -429,10 +429,13 @@ jobs:
       matrix:
         platform:
           - arch: amd64
+            docker_platform: linux/amd64
             runner: ubuntu-latest
           - arch: arm64
+            docker_platform: linux/arm64
             runner: ubuntu-24.04-arm
           - arch: armv7
+            docker_platform: linux/arm/v7
             runner: ubuntu-24.04-arm
     steps:
       - name: Checkout
@@ -455,7 +458,7 @@ jobs:
           load: true
           tags: subconverter-alpine:builder
           target: builder
-          platforms: linux/${{ matrix.platform.arch }}
+          platforms: ${{ matrix.platform.docker_platform }}
           build-args: |
             THREADS=4
             VERSION=${{ needs.prepare.outputs.version }}
