@@ -31,9 +31,15 @@ RUN go run ../scripts/generate_schemes.go mihomo_schemes.h
 RUN go run ../scripts/generate_param_compat.go -o param_compat.h
 
 # Build static library (enable CGO for musl)
-# 关键：不使用 -ldflags="-s -w"，保留完整符号表
-RUN echo "==> Building for $TARGETARCH" && \
-    CGO_ENABLED=1 go build \
+# 关键修改：
+# 1. 显式指定 CC=musl-gcc 确保纯 musl 工具链
+# 2. 使用 -trimpath 减少二进制体积（安全的瘦身方式）
+# 3. 禁止 -ldflags="-s -w"，保留完整符号表
+RUN echo "==> Building for $TARGETARCH with musl toolchain" && \
+    CC=musl-gcc \
+    CGO_ENABLED=1 \
+    go build \
+    -trimpath \
     -buildmode=c-archive \
     -o libmihomo.a \
     .
@@ -124,7 +130,12 @@ RUN set -xe && \
     export PATH="/usr/lib/ccache:$PATH" && \
     export CCACHE_DIR=/tmp/ccache && \
     export CCACHE_COMPILERCHECK=content && \
-    cmake -GNinja -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_COMPILER_LAUNCHER=ccache . && \
+    cmake -GNinja \
+    -DCMAKE_BUILD_TYPE=Release \
+    -DCMAKE_CXX_COMPILER_LAUNCHER=ccache \
+    -DCMAKE_INTERPROCEDURAL_OPTIMIZATION=OFF \
+    -DCMAKE_POSITION_INDEPENDENT_CODE=OFF \
+    . && \
     ninja -j ${THREADS}
 
 # ========== FINAL STAGE ==========
