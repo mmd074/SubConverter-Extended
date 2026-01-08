@@ -5,7 +5,6 @@
 #include <numeric>
 #include <string>
 
-
 #include <inja.hpp>
 #include <yaml-cpp/yaml.h>
 
@@ -48,7 +47,6 @@ const std::vector<std::string> FALLBACK_CONFIG_URLS = {
 #include "utils/urlencode.h"
 #include "utils/yamlcpp_extra.h"
 #include "webget.h"
-
 
 extern WebServer webServer;
 
@@ -796,8 +794,8 @@ std::string subconverter(RESPONSE_CALLBACK_ARGS) {
         provider.name = "Provider_" + urlHash;
         writeLog(0, "Generated provider: " + provider.name + " for URL: " + x,
                  LOG_LEVEL_INFO);
-        provider.url = x;
-        provider.interval = 3600; // 固定使用 3600 秒（1小时）
+        provider.url = urlDecode(x); // 解码 URL，同时过滤掉 \r 和 \n
+        provider.interval = 3600;    // 固定使用 3600 秒（1小时）
         provider.groupId = groupID;
         provider.path = "./providers/" + provider.name + ".yaml";
 
